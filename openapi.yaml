@@ -8,13 +8,27 @@ info:
     payload. The API mirrors the behaviour of the official TradingView
     screener used on the website.
   version: '1.0.0'
+  contact:
+    name: shner-elmo
+    email: 770elmo@gmail.com
+  license:
+    name: MIT
 servers:
   - url: https://scanner.tradingview.com
+
+tags:
+  - name: Screener Operations
+    description: Operations for TradingView screener API
+externalDocs:
+  description: Project repository and documentation
+  url: https://github.com/shner-elmo/TradingView-Screener
 
 paths:
   "/{market}/scan":
     post:
       summary: Scan TradingView markets with a custom query
+      tags:
+        - Screener Operations
       description: |
         Submit a query to TradingView's scanner service. The JSON body can
         specify one or more markets, a list of fields (columns) to return, and
@@ -260,7 +274,8 @@ components:
         columns:
           type: array
           items: {type: string}
-          description: Columns (fields) to return
+          description: |
+              Columns (fields) to return. TradingView exposes over 3000 available fields including OHLC data, fundamental metrics and indicators with timeframes like "RSI|240".
         filter:
           type: array
           items:
