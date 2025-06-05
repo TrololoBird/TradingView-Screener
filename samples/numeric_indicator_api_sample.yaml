@@ -3912,6 +3912,14 @@ components:
     - '60' # 1 hour
     - '120' # 2 hours
     - '240' # 4 hours
-    - '1D' # daily
-    - '1W' # weekly
-    - '1M' # monthly
+    - '1D'  # daily (previous trading day)
+    - '10D' # 10 trading days
+    - '30D' # 30 trading days
+    - '60D' # 60 trading days
+    - '90D' # 90 trading days
+    - '1W'  # weekly (previous 5 trading days)
+    - '1M'  # monthly (previous calendar month)
+    - '3M'  # 3 months
+    - '6M'  # 6 months
+    - '1Y'  # 1 year
+    - '5Y'  # 5 years
