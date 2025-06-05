@@ -262,3 +262,13 @@ allowing you to query data using SQL-like syntax without knowing the specifics o
 ## Feedback and Improvement
 
 If this package has bought value to your projects, please consider starring it.
+
+## OpenAPI Specification
+
+A comprehensive OpenAPI 3.1 specification describing the screener endpoints is available at `samples/numeric_indicator_api_sample.yaml`. You can validate it using:
+
+```bash
+python -m openapi_spec_validator samples/numeric_indicator_api_sample.yaml
+```
+
+This specification enumerates all supported indicators and timeframes so you can generate clients or integrate with GPT Builder Custom Actions.
