@@ -1,0 +1,421 @@
+openapi: 3.1.0
+info:
+  title: TradingView Screener API
+  version: "3.0.0"
+  description: |
+    The TradingView Screener API provides access to TradingView's official stock screener service. It enables screening of stocks, cryptocurrencies, forex, futures and more. Requests are made to `/scan` endpoints under different markets. Real-time data requires authentication using the `sessionid` cookie obtained from TradingView.
+    
+    This specification is derived from the repository and documents all request fields, markets and typical usage.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://scanner.tradingview.com
+    description: Primary server for the TradingView Screener API, providing access to screening and data retrieval functionality.
+security:
+  - SessionCookieAuth: []
+paths:
+  '/{market}/scan':
+    post:
+      operationId: postScreenerScan
+      summary: Retrieve screener data
+      description: |
+        Execute a screener query. The `market` path parameter identifies the screener. When multiple markets are listed in the body the endpoint automatically switches to `global`.
+      tags:
+        - Screener Operations
+      parameters:
+        - $ref: '#/components/parameters/MarketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryDict'
+            example:
+              markets: ["crypto"]
+              symbols:
+                tickers: ["BINANCE:BTCUSDT"]
+              columns: ["RSI", "EMA20", "MACD.macd"]
+              range: [0, 50]
+              sort:
+                sortBy: "volume"
+                sortOrder: "desc"
+              filter:
+                - left: "close"
+                  operation: "greater"
+                  right: 1000
+      responses:
+        '200':
+          description: Successful response with indicator values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerDict'
+              example:
+                totalCount: 1
+                data:
+                  - s: "BINANCE:BTCUSDT"
+                    d: [54200.1, 20.5, -1.2]
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: TradingView authentication cookie used to obtain real-time data.
+  parameters:
+    MarketPath:
+      name: market
+      in: path
+      required: true
+      description: Market or screener group
+      schema:
+        type: string
+        enum:
+        - america
+        - argentina
+        - australia
+        - austria
+        - bahrain
+        - bangladesh
+        - belgium
+        - brazil
+        - canada
+        - chile
+        - china
+        - colombia
+        - cyprus
+        - czech
+        - denmark
+        - egypt
+        - estonia
+        - finland
+        - france
+        - germany
+        - greece
+        - hongkong
+        - hungary
+        - iceland
+        - india
+        - indonesia
+        - ireland
+        - israel
+        - italy
+        - japan
+        - kenya
+        - korea
+        - ksa
+        - kuwait
+        - latvia
+        - lithuania
+        - luxembourg
+        - malaysia
+        - mexico
+        - morocco
+        - netherlands
+        - newzealand
+        - nigeria
+        - norway
+        - pakistan
+        - peru
+        - philippines
+        - poland
+        - portugal
+        - qatar
+        - romania
+        - rsa
+        - russia
+        - serbia
+        - singapore
+        - slovakia
+        - spain
+        - srilanka
+        - sweden
+        - switzerland
+        - taiwan
+        - thailand
+        - tunisia
+        - turkey
+        - uae
+        - uk
+        - venezuela
+        - vietnam
+        - bond
+        - bonds
+        - cfd
+        - coin
+        - crypto
+        - economics2
+        - forex
+        - futures
+        - options
+        default: america
+  schemas:
+    QueryDict:
+      type: object
+      properties:
+        markets:
+          type: array
+          items:
+            type: string
+        symbols:
+          type: object
+          properties:
+            query:
+              type: object
+              properties:
+                types:
+                  type: array
+                  items:
+                    type: string
+            tickers:
+              type: array
+              items:
+                type: string
+            symbolset:
+              type: array
+              items:
+                type: string
+            watchlist:
+              type: object
+              properties:
+                id:
+                  type: integer
+            groups:
+              type: array
+              items:
+                type: object
+                properties:
+                  type: string
+                  values:
+                    type: string
+        options:
+          type: object
+        columns:
+          type: array
+          items:
+            type: string
+          description: |
+            Names of technical indicators or other fields. Timeframe-supporting indicators use the syntax `INDICATOR|{tf}` where `tf` is one of the values listed in `x-timeframes`.
+        filter:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterOperation'
+        filter2:
+          $ref: '#/components/schemas/OperationDict'
+        sort:
+          $ref: '#/components/schemas/SortBy'
+        range:
+          type: array
+          items:
+            type: integer
+          description: "Pagination [offset, limit]"
+      required: [markets, symbols, columns]
+    FilterOperation:
+      type: object
+      required: [left, operation, right]
+      properties:
+        left:
+          type: string
+        operation:
+          type: string
+          enum: [greater, egreater, less, eless, equal, nequal, in_range, not_in_range, empty, nempty, crosses, crosses_above, crosses_below, match, nmatch, smatch, has, has_none_of, above%, below%, in_range%, not_in_range%, in_day_range, in_week_range, in_month_range]
+        right:
+          oneOf:
+            - type: number
+            - type: string
+            - type: array
+              items:
+                oneOf:
+                  - type: number
+                  - type: string
+    OperationDict:
+      type: object
+      properties:
+        operation:
+          type: object
+          required: [operator, operands]
+          properties:
+            operator:
+              type: string
+              enum: [and, or]
+            operands:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/OperationDict'
+                  - type: object
+                    properties:
+                      expression:
+                        $ref: '#/components/schemas/FilterOperation'
+    SortBy:
+      type: object
+      properties:
+        sortBy:
+          type: string
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+        nullsFirst:
+          type: boolean
+    ScreenerRow:
+      type: object
+      properties:
+        s:
+          type: string
+        d:
+          type: array
+          items:
+            type: number
+            nullable: true
+    ScreenerDict:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreenerRow'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        totalCount:
+          type: integer
+        data:
+          nullable: true
+          oneOf:
+            - type: 'null'
+            - type: array
+  x-indicators:
+          - 24h_vol_change_cmc
+          - 24h_vol_cmc
+          - 24h_vol_to_market_cap
+          - ADR
+          - ADRP
+          - ADX
+          - ADX+DI
+          - ADX+DI[1]
+          - ADX+DI_100
+          - ADX+DI_100[1]
+          - ADX+DI_20
+          - ADX+DI_20[1]
+          - ADX+DI_50
+          - ADX+DI_50[1]
+          - ADX+DI_9
+          - ADX+DI_9[1]
+          - ADX-DI
+          - ADX-DI[1]
+          - ADX-DI_100
+          - ADX-DI_100[1]
+          - ADX-DI_20
+          - ADX-DI_20[1]
+          - ADX-DI_50
+          - ADX-DI_50[1]
+          - ADX-DI_9
+          - ADX-DI_9[1]
+          - ADX_100
+          - ADX_20
+          - ADX_50
+          - ADX_9
+          - AO
+          - AO[1]
+          - AO[2]
+          - ATR
+          - ATRP
+          - Aroon.Down
+          - Aroon.Up
+          - BB.basis
+          - BB.basis_50
+          - BB.lower
+          - BB.lower_50
+          - BB.upper
+          - BB.upper_50
+          - BBPower
+          - CCI20
+          - CCI20[1]
+          - Candle.3BlackCrows
+          - Candle.3WhiteSoldiers
+          - Candle.AbandonedBaby.Bearish
+          - Candle.AbandonedBaby.Bullish
+          - Candle.Doji
+          - Candle.Doji.Dragonfly
+          - Candle.Doji.Gravestone
+          - Candle.Engulfing.Bearish
+          - Candle.Engulfing.Bullish
+          - Candle.EveningStar
+          - Candle.Hammer
+          - Candle.HangingMan
+          - Candle.Harami.Bearish
+          - Candle.Harami.Bullish
+          - Candle.InvertedHammer
+          - Candle.Kicking.Bearish
+          - Candle.Kicking.Bullish
+          - Candle.LongShadow.Lower
+          - Candle.LongShadow.Upper
+          - Candle.Marubozu.Black
+          - Candle.Marubozu.White
+          - Candle.MorningStar
+          - Candle.ShootingStar
+          - Candle.SpinningTop.Black
+          - Candle.SpinningTop.White
+          - Candle.TriStar.Bearish
+          - Candle.TriStar.Bullish
+          - ChaikinMoneyFlow
+          - DonchCh20.Lower
+          - DonchCh20.Middle
+          - DonchCh20.Upper
+          - EMA10
+          - EMA100
+          - EMA12
+          - EMA120
+          - EMA13
+          - EMA14
+          - EMA144
+          - EMA15
+          - EMA150
+          - EMA2
+          - EMA20
+          - EMA200
+          - EMA21
+          - EMA25
+          - EMA250
+          - EMA26
+          - EMA3
+          - EMA30
+          - EMA300
+          - EMA34
+          - EMA40
+          - EMA5
+          - EMA50
+          # ... additional indicator names available in data/metainfo/*
+  x-timeframes:
+    - '1'  # 1 minute
+    - '5'  # 5 minutes
+    - '15' # 15 minutes
+    - '30' # 30 minutes
+    - '60' # 1 hour
+    - '120' # 2 hours
+    - '240' # 4 hours
+    - '1W' # weekly
+    - '1M' # monthly
