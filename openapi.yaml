@@ -81,10 +81,37 @@ paths:
                         d: [542.04, 52331224]
         "400":
           description: Bad request (invalid JSON or parameters)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                default:
+                  value:
+                    error: "Bad Request"
+                    detail: "Invalid parameters"
         "401":
           description: Authentication required for real-time data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                default:
+                  value:
+                    error: "Unauthorized"
+                    detail: "Authentication required"
         "500":
           description: TradingView server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                default:
+                  value:
+                    error: "Internal Server Error"
+                    detail: "Unexpected error occurred"
       security:
         - SessionCookieAuth: []
 
@@ -319,3 +346,12 @@ components:
           items:
             $ref: "#/components/schemas/ScreenerRow"
           description: List of screener rows corresponding to your columns
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error, detail]
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
