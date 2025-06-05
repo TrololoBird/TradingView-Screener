@@ -105,7 +105,7 @@ API. This package retrieves data directly from TradingView without the need for 
 <ul>
 <li><strong>Over 3000 Fields</strong>: OHLC, indicators, fundamental metrics, and much more.</li>
 <li><strong>Multiple Markets</strong>: Stocks, crypto, forex, CFD, futures, bonds, and more.</li>
-<li><strong>Customizable Timeframes</strong>: Choose timeframes like 1 minute, 5 minutes, 1 hour, or 1 day for each field.</li>
+<li><strong>Customizable Timeframes</strong>: Choose from minute, hourly, daily, weekly, monthly and multi-month windows (e.g. <code>10D</code>, <code>1W</code>, <code>3M</code>, <code>1Y</code>) for each field.</li>
 <li><strong>Filter and sort</strong> the results using a SQL-like syntax, with support for And/Or operators for advanced filtering.</li>
 </ul>
 
@@ -130,6 +130,14 @@ Same with "Scanner" and "Screener".</p>
 
 <span class="p">(</span><span class="n">Query</span><span class="p">()</span>
  <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="s1">&#39;volume&#39;</span><span class="p">,</span> <span class="s1">&#39;market_cap_basic&#39;</span><span class="p">)</span>
+ <span class="o">.</span><span class="n">get_scanner_data</span><span class="p">())</span>
+</code></pre>
+</div>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="p">(</span><span class="n">Query</span><span class="p">()</span>
+ <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;close|1W&#39;</span><span class="p">,</span> <span class="s1">&#39;volume|1M&#39;</span><span class="p">)</span>
+ <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
  <span class="o">.</span><span class="n">get_scanner_data</span><span class="p">())</span>
 </code></pre>
 </div>
@@ -316,8 +324,10 @@ use, the markets, instruments (even some that you wont find on TradingView's web
 
 <h2 id="robustness-longevity">Robustness &amp; Longevity</h2>
 
-<p>This package is designed to be future-proof. There are no hard-coded values in the package, all fields/columns and markets are documented on the website, which is updated
-daily via a GitHub Actions script.</p>
+<p>This package is designed to be future-proof. There are no hard-coded values in the package.
+All fields/columns and markets are documented on the website. These files are refreshed
+nightly by the <code>update_metainfo.yml</code> workflow, which downloads the latest metadata from
+TradingView and regenerates the OpenAPI specs.</p>
 
 <h2 id="how-it-works">How It Works</h2>
 
