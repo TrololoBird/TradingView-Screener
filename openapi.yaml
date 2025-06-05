@@ -8,6 +8,9 @@ info:
     payload. The API mirrors the behaviour of the official TradingView
     screener used on the website.
   version: '1.0.0'
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: https://scanner.tradingview.com
 
