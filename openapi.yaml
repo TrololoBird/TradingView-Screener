@@ -111,6 +111,12 @@ components:
         documentation under `constants.MARKETS`.
       schema:
         type: string
+        enum:
+          - america
+          - crypto
+          - forex
+          - global
+          - israel
       examples:
         america:
           value: "america"
