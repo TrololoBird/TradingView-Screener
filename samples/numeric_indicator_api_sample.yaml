@@ -87,7 +87,15 @@ components:
       type: apiKey
       in: cookie
       name: sessionid
-      description: TradingView authentication cookie used to obtain real-time data. Acquire it by POSTing to `/accounts/signin/`.
+      description: |
+        TradingView authentication cookie used to obtain real-time data.
+        See the README for ways to obtain `sessionid` either by copying it from
+        your browser cookies or by sending a login request to
+        `/accounts/signin/`.
+        Example:
+          ```python
+          cookies = {"sessionid": "<your-session-id>"}
+          ```
   parameters:
     MarketPath:
       name: market
