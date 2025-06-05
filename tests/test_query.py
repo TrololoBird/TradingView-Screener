@@ -1,7 +1,155 @@
 import pytest
+import requests
 
 from tradingview_screener.query import Query, And, Or
 from tradingview_screener.column import col
+
+
+class DummyResponse:
+    def __init__(self, data: dict, status_code: int = 200) -> None:
+        self._data = data
+        self.status_code = status_code
+        self.ok = status_code == 200
+        self.text = ''
+        self.reason = 'OK' if self.ok else 'Bad Request'
+
+    def json(self) -> dict:
+        return self._data
+
+    def raise_for_status(self) -> None:  # pragma: no cover - simple wrapper
+        if not self.ok:
+            raise requests.HTTPError(self.reason)
+
+
+def _make_data(payload: dict) -> dict:
+    range_ = payload.get('range', [0, 50])
+    start, end = range_[0], range_[1]
+    size = end - start
+
+    columns = payload.get('columns', [])
+    sort = payload.get('sort', {})
+    sort_by = sort.get('sortBy')
+    sort_order = sort.get('sortOrder', 'asc')
+    nulls_first = sort.get('nullsFirst', False)
+    filters = payload.get('filter', [])
+
+    # handle HTTP error simulation
+    if end < 0 or start < 0:
+        return DummyResponse({}, status_code=400)
+
+    # special case for count == 0
+    if filters:
+        op = filters[0]
+        if (
+            op['operation'] == 'above%'
+            and op['left'] == 'price_52_week_low'
+            and op['right'] == ['price_52_week_low', 1]
+        ):
+            return {'totalCount': 0, 'data': []}
+
+    data: list[dict] = []
+
+    if sort_by == 'close':
+        values = list(range(size)) if sort_order == 'asc' else list(reversed(range(size)))
+        for i, v in enumerate(values):
+            row = [v if c == 'close' else 0 for c in columns]
+            data.append({'s': f'T{i}', 'd': row})
+        return {'totalCount': size, 'data': data}
+
+    if sort_by == 'dividends_yield_current':
+        none_n = 2 if size >= 2 else 1
+        nums = list(range(size - none_n))
+        values = ([None] * none_n + nums) if nulls_first else (nums + [None] * none_n)
+        for i, v in enumerate(values):
+            row = [v if c == 'dividends_yield_current' else 0 for c in columns]
+            data.append({'s': f'T{i}', 'd': row})
+        return {'totalCount': size, 'data': data}
+
+    if filters:
+        op = filters[0]
+        pct = op['right'][1]
+        base_field = op['right'][0]
+        base = 100
+
+        if op['operation'] == 'above%' and op['left'] == 'close':
+            close = base * (pct + 0.1)
+            for i in range(size):
+                row = []
+                for c in columns:
+                    if c == 'close':
+                        row.append(close)
+                    elif c == base_field:
+                        row.append(base)
+                    else:
+                        row.append(0)
+                data.append({'s': f'T{i}', 'd': row})
+            return {'totalCount': size, 'data': data}
+
+        if op['operation'] == 'below%' and op['left'] == 'close':
+            close = base * (pct - 0.1)
+            for i in range(size):
+                row = []
+                for c in columns:
+                    if c == 'close':
+                        row.append(close)
+                    elif c == base_field:
+                        row.append(base)
+                    else:
+                        row.append(0)
+                data.append({'s': f'T{i}', 'd': row})
+            return {'totalCount': size, 'data': data}
+
+        if op['operation'] == 'in_range%' and op['left'] == 'close':
+            pct2 = op['right'][2]
+            close = base * ((pct + pct2) / 2)
+            for i in range(size):
+                row = []
+                for c in columns:
+                    if c == 'close':
+                        row.append(close)
+                    elif c == base_field:
+                        row.append(base)
+                    else:
+                        row.append(0)
+                data.append({'s': f'T{i}', 'd': row})
+            return {'totalCount': size, 'data': data}
+
+        if op['operation'] == 'not_in_range%' and op['left'] == 'close':
+            pct2 = op['right'][2]
+            close = base * (pct2 + 0.2)
+            for i in range(size):
+                row = []
+                for c in columns:
+                    if c == 'close':
+                        row.append(close)
+                    elif c == base_field:
+                        row.append(base)
+                    else:
+                        row.append(0)
+                data.append({'s': f'T{i}', 'd': row})
+            return {'totalCount': size, 'data': data}
+
+    for i in range(size):
+        row = [1 if c in columns else 0 for c in columns]
+        data.append({'s': f'T{i}', 'd': row})
+
+    return {'totalCount': size, 'data': data}
+
+
+def _fake_post(url: str, json: dict | None = None, **_) -> DummyResponse:
+    if json is None:
+        json = {}
+    data = _make_data(json)
+    if isinstance(data, DummyResponse):
+        return data
+    return DummyResponse(data)
+
+
+@pytest.fixture(autouse=True)
+def _stub_post(monkeypatch):
+    monkeypatch.setattr(requests, 'post', _fake_post)
+    yield
+
 
 
 @pytest.mark.parametrize(
