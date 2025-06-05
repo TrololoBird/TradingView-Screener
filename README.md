@@ -34,7 +34,7 @@ API. This package retrieves data directly from TradingView without the need for 
 
 - **Over 3000 Fields**: OHLC, indicators, fundamental metrics, and much more.
 - **Multiple Markets**: Stocks, crypto, forex, CFD, futures, bonds, and more.
-- **Customizable Timeframes**: Choose timeframes like 1 minute, 5 minutes, 1 hour, or 1 day for each field.
+- **Customizable Timeframes**: Choose from minute, hourly, daily, weekly, monthly and multi-month windows (e.g. `10D`, `1W`, `3M`, `1Y`) for each field.
 - **Filter and sort** the results using a SQL-like syntax, with support for And/Or operators for advanced filtering.
 
 
@@ -57,6 +57,13 @@ from tradingview_screener import Query
 
 (Query()
  .select('name', 'close', 'volume', 'market_cap_basic')
+ .get_scanner_data())
+```
+
+```python
+(Query()
+ .select('close|1W', 'volume|1M')
+ .limit(5)
  .get_scanner_data())
 ```
 
