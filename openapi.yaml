@@ -1,0 +1,315 @@
+openapi: 3.1.0
+info:
+  title: TradingView Screener API
+  description: |
+    This specification describes the `/{market}/scan` endpoint used by the
+    `tradingview-screener` Python package. The endpoint allows you to filter,
+    sort and retrieve market data from TradingView screeners using a JSON
+    payload. The API mirrors the behaviour of the official TradingView
+    screener used on the website.
+  version: '1.0.0'
+servers:
+  - url: https://scanner.tradingview.com
+
+paths:
+  "/{market}/scan":
+    post:
+      summary: Scan TradingView markets with a custom query
+      description: |
+        Submit a query to TradingView's scanner service. The JSON body can
+        specify one or more markets, a list of fields (columns) to return, and
+        filtering or sorting instructions. If multiple markets are listed in the
+        payload, the path parameter must be set to `global`.
+
+        Typical uses include:
+        - fetching high volume stocks from the US market
+        - screening crypto pairs by indicator values
+        - querying multiple markets at once using the `global` endpoint
+
+        The response contains a total count and rows corresponding to the
+        requested columns. Each row's `d` list matches the order of the columns
+        sent in the request.
+      operationId: postScan
+      parameters:
+        - $ref: "#/components/parameters/MarketPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryDict"
+            examples:
+              basic:
+                summary: Simple screener request
+                value:
+                  markets: ["america"]
+                  symbols: {query: {types: []}, tickers: []}
+                  options: {lang: "en"}
+                  columns: ["name", "close", "volume", "market_cap_basic"]
+                  sort: {sortBy: "volume", sortOrder: "desc"}
+                  range: [0, 50]
+              multi-filter:
+                summary: Request with complex filters
+                value:
+                  markets: ["america"]
+                  columns: ["name", "close", "volume", "relative_volume_10d_calc"]
+                  filter:
+                    - left: "market_cap_basic"
+                      operation: "in_range"
+                      right: [1000000, 50000000]
+                    - left: "relative_volume_10d_calc"
+                      operation: "greater"
+                      right: 1.2
+                  sort: {sortBy: "volume", sortOrder: "desc"}
+                  range: [5, 25]
+      responses:
+        "200":
+          description: Screener results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreenerDict"
+              examples:
+                default:
+                  summary: Successful response
+                  value:
+                    totalCount: 17559
+                    data:
+                      - s: "NASDAQ:NVDA"
+                        d: [116.14, 312636630]
+                      - s: "AMEX:SPY"
+                        d: [542.04, 52331224]
+        "400":
+          description: Bad request (invalid JSON or parameters)
+        "401":
+          description: Authentication required for real-time data
+        "500":
+          description: TradingView server error
+      security:
+        - SessionCookieAuth: []
+
+components:
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: |
+        Pass your TradingView `sessionid` cookie to access real-time data.
+        You can obtain it by logging into https://www.tradingview.com and
+        copying the `sessionid` cookie from your browser. See the package
+        README for an example authentication flow.
+
+  parameters:
+    MarketPath:
+      name: market
+      in: path
+      required: true
+      description: |
+        Market identifier for the screener. Examples include `america`, `crypto`,
+        `forex`, `israel`, or `global`. A full list is available in the project
+        documentation under `constants.MARKETS`.
+      schema:
+        type: string
+      examples:
+        america:
+          value: "america"
+        crypto:
+          value: "crypto"
+        global:
+          value: "global"
+
+  schemas:
+    FilterOperation:
+      type: object
+      additionalProperties: false
+      required: [left, operation]
+      properties:
+        left:
+          type: string
+          description: Column name to compare
+        operation:
+          type: string
+          description: Comparison operator
+          enum:
+            - greater
+            - egreater
+            - less
+            - eless
+            - equal
+            - nequal
+            - in_range
+            - not_in_range
+            - empty
+            - nempty
+            - crosses
+            - crosses_above
+            - crosses_below
+            - match
+            - nmatch
+            - smatch
+            - has
+            - has_none_of
+            - above%
+            - below%
+            - in_range%
+            - not_in_range%
+            - in_day_range
+            - in_week_range
+            - in_month_range
+        right:
+          description: Value or list of values to compare with
+          nullable: true
+
+    SortBy:
+      type: object
+      additionalProperties: false
+      required: [sortBy, sortOrder]
+      properties:
+        sortBy:
+          type: string
+          description: Column used for sorting
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+        nullsFirst:
+          type: boolean
+          description: Place null values at the beginning when true
+
+    Symbols:
+      type: object
+      additionalProperties: false
+      properties:
+        query:
+          type: object
+          properties:
+            types:
+              type: array
+              items: {type: string}
+              description: Limit instruments by type (e.g., 'stock', 'fund')
+        tickers:
+          type: array
+          items: {type: string}
+          description: Specific tickers to query (`exchange:symbol`)
+        symbolset:
+          type: array
+          items: {type: string}
+          description: Predefined symbol sets
+        watchlist:
+          type: object
+          properties:
+            id: {type: integer}
+          description: TradingView watchlist id
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              type: {type: string}
+              values: {type: string}
+
+    Expression:
+      type: object
+      required: [expression]
+      additionalProperties: false
+      properties:
+        expression:
+          $ref: "#/components/schemas/FilterOperation"
+
+    OperationComparison:
+      type: object
+      additionalProperties: false
+      required: [operator, operands]
+      properties:
+        operator:
+          type: string
+          enum: [and, or]
+        operands:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/Operation"
+              - $ref: "#/components/schemas/Expression"
+
+    Operation:
+      type: object
+      required: [operation]
+      additionalProperties: false
+      properties:
+        operation:
+          $ref: "#/components/schemas/OperationComparison"
+
+    QueryDict:
+      type: object
+      additionalProperties: false
+      description: |
+        Payload accepted by the TradingView screener endpoint. The `filter`
+        array joins conditions with `AND`. The optional `filter2` structure is
+        used for advanced logical expressions mixing `AND` and `OR` via
+        `And()`/`Or()` in the client library.
+      properties:
+        markets:
+          type: array
+          items: {type: string}
+          description: List of markets to scan
+        symbols:
+          $ref: "#/components/schemas/Symbols"
+        options:
+          type: object
+          description: Additional options such as language
+        columns:
+          type: array
+          items: {type: string}
+          description: Columns (fields) to return
+        filter:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterOperation"
+          description: Simple AND filters
+        filter2:
+          $ref: "#/components/schemas/OperationComparison"
+          description: Nested logical filters built with `And()`/`Or()`
+        sort:
+          $ref: "#/components/schemas/SortBy"
+        range:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items: {type: integer}
+          description: Offset and limit ([start, end])
+        ignore_unknown_fields:
+          type: boolean
+        preset:
+          type: string
+          description: Predefined screener preset
+        price_conversion:
+          type: object
+          description: Price conversion options (currency or symbol)
+
+    ScreenerRow:
+      type: object
+      additionalProperties: false
+      required: [s, d]
+      properties:
+        s:
+          type: string
+          description: Ticker in the form `EXCHANGE:SYMBOL`
+        d:
+          type: array
+          items:
+            type: number
+          description: Values for the requested columns in order
+
+    ScreenerDict:
+      type: object
+      additionalProperties: false
+      required: [totalCount, data]
+      properties:
+        totalCount:
+          type: integer
+          description: Number of matching instruments
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenerRow"
+          description: List of screener rows corresponding to your columns
