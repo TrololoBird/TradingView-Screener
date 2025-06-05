@@ -1,5 +1,3 @@
-import re
-
 import pytest
 
 from tradingview_screener.query import Query, And, Or
