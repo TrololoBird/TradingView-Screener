@@ -74,13 +74,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+x-codeSamples:
+  - lang: cURL
+    source: |
+      curl -X POST 'https://scanner.tradingview.com/crypto/scan' \
+        -H 'Content-Type: application/json' \
+        -H 'Cookie: sessionid=<your-session-id>' \
+        -d '{"markets":["crypto"],"symbols":{"tickers":["BINANCE:BTCUSDT"]},"columns":["RSI","EMA20","MACD.macd"],"range":[0,50],"sort":{"sortBy":"volume","sortOrder":"desc"},"filter":[{"left":"close","operation":"greater","right":1000}]}'
 components:
   securitySchemes:
     SessionCookieAuth:
       type: apiKey
       in: cookie
       name: sessionid
-      description: TradingView authentication cookie used to obtain real-time data.
+      description: TradingView authentication cookie used to obtain real-time data. Acquire it by POSTing to `/accounts/signin/`.
   parameters:
     MarketPath:
       name: market
