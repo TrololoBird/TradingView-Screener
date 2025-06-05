@@ -215,7 +215,10 @@ components:
           items:
             type: string
           description: |
-            Names of technical indicators or other fields. Timeframe-supporting indicators use the syntax `INDICATOR|{tf}` where `tf` is one of the values listed in `x-timeframes`.
+            Names of technical indicators or other fields. Timeframe-supporting
+            indicators **must** include a timeframe suffix using the syntax
+            `INDICATOR|{tf}` (for example `rsi|1D` or `sma|60`). The `{tf}`
+            value must be one of the options listed in `x-timeframes`.
         filter:
           type: array
           items:
@@ -3902,5 +3905,6 @@ components:
     - '60' # 1 hour
     - '120' # 2 hours
     - '240' # 4 hours
+    - '1D' # daily
     - '1W' # weekly
     - '1M' # monthly
