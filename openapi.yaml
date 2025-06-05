@@ -1,0 +1,276 @@
+openapi: 3.0.3
+info:
+  title: TradingView Screener API
+  version: "1.0.0"
+  description: |
+    Official TradingView screener endpoint used by this package.
+servers:
+  - url: https://scanner.tradingview.com
+    description: TradingView Scanner
+
+paths:
+  "/{market}/scan":
+    post:
+      summary: Scan a specific market
+      parameters:
+        - in: path
+          name: market
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryDict'
+            example:
+              markets:
+                - america
+              symbols:
+                query:
+                  types: []
+                tickers: []
+              options:
+                lang: en
+              columns:
+                - name
+                - close
+                - volume
+                - relative_volume_10d_calc
+              sort:
+                sortBy: volume
+                sortOrder: desc
+              range:
+                - 5
+                - 25
+              filter:
+                - left: market_cap_basic
+                  operation: in_range
+                  right:
+                    - 1000000
+                    - 50000000
+                - left: relative_volume_10d_calc
+                  operation: greater
+                  right: 1.2
+                - left: MACD.macd
+                  operation: egreater
+                  right: MACD.signal
+      responses:
+        "200":
+          description: Screener data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerDict'
+              example:
+                totalCount: 17559
+                data:
+                  - s: NASDAQ:NVDA
+                    d:
+                      - 116.14
+                      - 312636630
+                  - s: AMEX:SPY
+                    d:
+                      - 542.04
+                      - 52331224
+                  - s: NASDAQ:QQQ
+                    d:
+                      - 462.58
+                      - 40084156
+                  - s: NASDAQ:TSLA
+                    d:
+                      - 207.83
+                      - 76247251
+                  - s: NASDAQ:SBUX
+                    d:
+                      - 95.9
+                      - 157211696
+      security:
+        - SessionCookieAuth: []
+
+components:
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+
+  schemas:
+    FilterOperationDict:
+      type: object
+      required:
+        - left
+        - operation
+      properties:
+        left:
+          type: string
+        operation:
+          type: string
+          enum:
+            - greater
+            - egreater
+            - less
+            - eless
+            - equal
+            - nequal
+            - in_range
+            - not_in_range
+            - empty
+            - nempty
+            - crosses
+            - crosses_above
+            - crosses_below
+            - match
+            - nmatch
+            - smatch
+            - has
+            - has_none_of
+            - above%
+            - below%
+            - in_range%
+            - not_in_range%
+            - in_day_range
+            - in_week_range
+            - in_month_range
+        right: {}
+    SortByDict:
+      type: object
+      required:
+        - sortBy
+        - sortOrder
+      properties:
+        sortBy:
+          type: string
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+        nullsFirst:
+          type: boolean
+    SymbolsDict:
+      type: object
+      properties:
+        query:
+          type: object
+          properties:
+            types:
+              type: array
+              items:
+                type: string
+        tickers:
+          type: array
+          items:
+            type: string
+        symbolset:
+          type: array
+          items:
+            type: string
+        watchlist:
+          type: object
+          properties:
+            id:
+              type: integer
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              values: {}
+    ExpressionDict:
+      type: object
+      required:
+        - expression
+      properties:
+        expression:
+          $ref: '#/components/schemas/FilterOperationDict'
+    OperationDict:
+      type: object
+      required:
+        - operation
+      properties:
+        operation:
+          $ref: '#/components/schemas/OperationComparisonDict'
+    OperationComparisonDict:
+      type: object
+      required:
+        - operator
+        - operands
+      properties:
+        operator:
+          type: string
+          enum: [and, or]
+        operands:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/OperationDict'
+              - $ref: '#/components/schemas/ExpressionDict'
+    QueryDict:
+      type: object
+      properties:
+        markets:
+          type: array
+          items:
+            type: string
+        symbols:
+          $ref: '#/components/schemas/SymbolsDict'
+        options:
+          type: object
+          additionalProperties: {}
+        columns:
+          type: array
+          items:
+            type: string
+        filter:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterOperationDict'
+        filter2:
+          $ref: '#/components/schemas/OperationComparisonDict'
+        sort:
+          $ref: '#/components/schemas/SortByDict'
+        range:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+        ignore_unknown_fields:
+          type: boolean
+        preset:
+          type: string
+        price_conversion:
+          oneOf:
+            - type: object
+              properties:
+                to_symbol:
+                  type: boolean
+            - type: object
+              properties:
+                to_currency:
+                  type: string
+    ScreenerRowDict:
+      type: object
+      required:
+        - s
+        - d
+      properties:
+        s:
+          type: string
+        d:
+          type: array
+          items: {}
+    ScreenerDict:
+      type: object
+      required:
+        - totalCount
+        - data
+      properties:
+        totalCount:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreenerRowDict'
