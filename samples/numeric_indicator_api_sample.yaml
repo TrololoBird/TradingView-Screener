@@ -5,6 +5,9 @@ info:
   description: |
     API wrapper around TradingView's screener service. Use it to run queries
     against different markets and retrieve indicator values for tickers.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: https://scanner.tradingview.com
     description: Primary API server
