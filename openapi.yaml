@@ -15,6 +15,7 @@ info:
     name: MIT
 servers:
   - url: https://scanner.tradingview.com
+    description: Main TradingView screener server
 
 tags:
   - name: Screener Operations
@@ -280,7 +281,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FilterOperation"
-          description: Simple AND filters
+          description: |
+            Filter conditions using any of TradingView's 3000+ fields.
+            Field names may include indicator timeframes like "RSI|240".
+            Conditions in this array are combined with logical AND.
         filter2:
           $ref: "#/components/schemas/OperationComparison"
           description: Nested logical filters built with `And()`/`Or()`
