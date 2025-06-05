@@ -52,7 +52,11 @@ paths:
                 summary: Request with complex filters
                 value:
                   markets: ["america"]
-                  columns: ["name", "close", "volume", "relative_volume_10d_calc"]
+                  columns:
+                    - "name"
+                    - "close"
+                    - "volume"
+                    - "relative_volume_10d_calc"
                   filter:
                     - left: "market_cap_basic"
                       operation: "in_range"
@@ -106,9 +110,9 @@ components:
       in: path
       required: true
       description: |
-        Market identifier for the screener. Examples include `america`, `crypto`,
-        `forex`, `israel`, or `global`. A full list is available in the project
-        documentation under `constants.MARKETS`.
+        Market identifier for the screener. Examples include `america`,
+        `crypto`, `forex`, `israel` or `global`. A full list is available in the
+        project documentation under `constants.MARKETS`.
       schema:
         type: string
       examples:
