@@ -239,8 +239,10 @@ This library is also a wrapper that makes it easier to generate those verbose JS
 
 ## Robustness & Longevity
 
-This package is designed to be future-proof. There are no hard-coded values in the package, all fields/columns and markets are documented on the website, which is updated
-daily via a GitHub Actions script.
+This package is designed to be future-proof. There are no hard-coded values in the package.
+All fields/columns and markets are documented on the website. These files are refreshed
+nightly by the `update_metainfo.yml` workflow, which downloads the latest metadata from
+TradingView and regenerates the OpenAPI specs.
 
 ## How It Works
 
