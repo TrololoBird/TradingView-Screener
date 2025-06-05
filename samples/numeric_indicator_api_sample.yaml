@@ -204,7 +204,8 @@ components:
               items:
                 type: object
                 properties:
-                  type: string
+                  type:
+                    type: string
                   values:
                     type: string
         options:
