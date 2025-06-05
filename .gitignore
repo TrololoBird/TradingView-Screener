@@ -6,3 +6,4 @@ docs/
 data/
 dist/
 trash/
+openapi_generated/
