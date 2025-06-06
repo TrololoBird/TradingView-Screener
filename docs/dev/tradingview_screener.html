@@ -41,6 +41,7 @@
   <li><a href="#comparison-to-similar-packages">Comparison to Similar Packages</a></li>
   <li><a href="#robustness-longevity">Robustness &amp; Longevity</a></li>
   <li><a href="#how-it-works">How It Works</a></li>
+  <li><a href="#windows-one-click-openapi-generation">Windows One-Click OpenAPI Generation</a></li>
   <li><a href="#feedback-and-improvement">Feedback and Improvement</a></li>
 </ul>
 
@@ -480,6 +481,17 @@ request. Here’s an example of the dictionary generated:</p>
 
 <p>The <code>get_scanner_data()</code> method sends this dictionary as a JSON payload to the TradingView API,
 allowing you to query data using SQL-like syntax without knowing the specifics of the API.</p>
+
+<h2 id="windows-one-click-openapi-generation">Windows One-Click OpenAPI Generation</h2>
+
+<p>To generate the OpenAPI specifications on Windows:</p>
+
+<ol>
+<li>Double-click <code>generate_openapi.bat</code> in the project root.</li>
+<li>The script creates a virtual environment, installs the package and runs <code>scripts\gpt_openapi_generator.py</code>.</li>
+</ol>
+
+<p>The resulting specification files will be saved in the <code>openapi_generated/</code> directory.</p>
 
 <h2 id="feedback-and-improvement">Feedback and Improvement</h2>
 
