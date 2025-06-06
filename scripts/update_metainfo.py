@@ -15,13 +15,13 @@ def main() -> None:
     markets = markets_data.get('countries', []) + markets_data.get('other', [])
     METAINFO_DIR.mkdir(parents=True, exist_ok=True)
     for market in markets:
-        url = f'https://scanner.tradingview.com/{market}/meta'
+        url = f'https://scanner.tradingview.com/{market}/metainfo'
         print(f'Downloading {url}')
-        resp = requests.get(url, headers=HEADERS)
+        resp = requests.post(url, json={}, headers=HEADERS)
         resp.raise_for_status()
         (METAINFO_DIR / f'{market}.json').write_text(resp.text)
 
-    subprocess.run(['python', 'scripts/generate_openapi.py'], check=True)
+    subprocess.run(['python', 'scripts/gpt_openapi_generator.py'], check=True)
 
 
 if __name__ == '__main__':
