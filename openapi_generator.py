@@ -10,13 +10,29 @@ from openapi_spec_validator.shortcuts import validate_spec
 
 from tv_api_parser import group_fields
 
+
+def _load_fields(meta: dict | list) -> list[dict]:
+    """Return list of field dictionaries from metainfo JSON."""
+    if isinstance(meta, dict):
+        fields = meta.get('fields', [])
+    else:
+        fields = meta
+    if not isinstance(fields, list):
+        return []
+    return fields
+
 BASE_SPEC_PATH = Path('openapi.yaml')
 OUTPUT_DIR = Path('openapi_generated')
 METAINFO_DIR = Path('data/metainfo')
 
 
 def build_spec(
-    market: str, base: dict, no_tf: List[str], with_tf: List[str], tfs: List[str]
+    market: str,
+    base: dict,
+    no_tf: List[str],
+    with_tf: List[str],
+    tfs: List[str],
+    all_fields: List[str],
 ) -> dict:
     spec = copy.deepcopy(base)
     info = spec.setdefault('info', {})
@@ -103,15 +119,37 @@ def build_spec(
         elif no_tf:
             cols['examples'] = [no_tf[0]]
 
+    # add filter and sort enums
+    filt = comp.get('FilterOperation')
+    if filt:
+        left = filt.get('properties', {}).get('left', {})
+        left['enum'] = all_fields
+        if all_fields:
+            left.setdefault('examples', [all_fields[0]])
+
+    sort_schema = comp.get('SortBy')
+    if sort_schema:
+        sort_by = sort_schema.get('properties', {}).get('sortBy', {})
+        sort_by['enum'] = all_fields
+        if all_fields:
+            sort_by.setdefault('examples', [all_fields[0]])
+
     spec['x-timeframes'] = tfs
     spec['x-fields'] = no_tf + combos
+    spec['x-all-fields'] = all_fields
     return spec
 
 
-def generate_spec(market: str, no_tf: List[str], with_tf: List[str], tfs: List[str]) -> Path:
+def generate_spec(
+    market: str,
+    no_tf: List[str],
+    with_tf: List[str],
+    tfs: List[str],
+    all_fields: List[str],
+) -> Path:
     OUTPUT_DIR.mkdir(exist_ok=True)
     base = yaml.safe_load(BASE_SPEC_PATH.read_text())
-    spec = build_spec(market, base, no_tf, with_tf, tfs)
+    spec = build_spec(market, base, no_tf, with_tf, tfs, all_fields)
     out_path = OUTPUT_DIR / f'{market}.yaml'
     out_path.write_text(yaml.safe_dump(spec, sort_keys=False, allow_unicode=True))
     # validate without the non standard `functions` field
@@ -125,5 +163,7 @@ def generate_from_metainfo(market: str) -> Path:
     """Generate OpenAPI spec for a market using stored metainfo."""
     path = METAINFO_DIR / f"{market}.json"
     meta = json.loads(path.read_text())
-    no_tf, with_tf, tfs = group_fields(meta)
-    return generate_spec(market, no_tf, with_tf, tfs)
+    fields = _load_fields(meta)
+    all_fields = [item.get('n') for item in fields if item.get('n')]
+    no_tf, with_tf, tfs = group_fields(fields)
+    return generate_spec(market, no_tf, with_tf, tfs, all_fields)

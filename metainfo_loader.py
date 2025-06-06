@@ -45,3 +45,13 @@ def download_all(
         successful.append(market)
 
     return successful
+
+
+def download_metainfo(
+    markets_path: Path | None = None,
+    output_dir: Path | None = None,
+    *,
+    session: Optional[requests.sessions.Session] = None,
+) -> List[str]:
+    """Alias for backward compatibility."""
+    return download_all(markets_path, output_dir, session=session)
