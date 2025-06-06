@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import copy
+import json
 from pathlib import Path
 from typing import List
 
 import yaml
 from openapi_spec_validator.shortcuts import validate_spec
 
+from tv_api_parser import group_fields
+
 BASE_SPEC_PATH = Path('openapi.yaml')
 OUTPUT_DIR = Path('openapi_generated')
+METAINFO_DIR = Path('data/metainfo')
 
 
 def build_spec(
@@ -26,12 +30,31 @@ def build_spec(
             op = spec['paths'].pop(template)['post']
         spec.pop('paths', None)
 
-    parameters = (
+    qdict_schema = (
         op.get('requestBody', {})
         .get('content', {})
         .get('application/json', {})
         .get('schema', {'$ref': '#/components/schemas/QueryDict'})
     )
+
+    func_params = {'type': 'object'}
+
+    # extract subset for GPT functions
+    props = {}
+    if isinstance(qdict_schema, dict):
+        qprops = qdict_schema.get('properties', {})
+        props = {
+            'symbols': qprops.get('symbols', {}),
+            'columns': qprops.get('columns', {}),
+            'filters': qprops.get('filter', {}),
+            'sort': qprops.get('sort', {}),
+            'range': qprops.get('range', {}),
+        }
+    if props:
+        func_params['properties'] = props
+        func_params['required'] = []
+    else:
+        func_params = qdict_schema
     responses = op.get(
         'responses',
         {
@@ -48,7 +71,7 @@ def build_spec(
             'operationId': f'scan_{market}',
             'summary': op.get('summary', 'Scan TradingView market'),
             'description': op.get('description', ''),
-            'parameters': parameters,
+            'parameters': func_params,
             'responses': responses,
         }
     }
@@ -96,3 +119,11 @@ def generate_spec(market: str, no_tf: List[str], with_tf: List[str], tfs: List[s
     to_validate.pop('functions', None)
     validate_spec(to_validate)
     return out_path
+
+
+def generate_from_metainfo(market: str) -> Path:
+    """Generate OpenAPI spec for a market using stored metainfo."""
+    path = METAINFO_DIR / f"{market}.json"
+    meta = json.loads(path.read_text())
+    no_tf, with_tf, tfs = group_fields(meta)
+    return generate_spec(market, no_tf, with_tf, tfs)
