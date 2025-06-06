@@ -9,7 +9,7 @@ import yaml
 from tradingview_screener.query import HEADERS
 
 MARKETS_URL = "https://scanner.tradingview.com/markets"
-META_URL = "https://scanner.tradingview.com/{market}/meta"
+META_URL = "https://scanner.tradingview.com/{market}/metainfo"
 OUTPUT_DIR = Path("openapi_generated")
 BASE_SPEC_PATH = Path("openapi.yaml")
 MARKETS_PATH = Path("data/markets.json")
@@ -26,7 +26,9 @@ def get_markets() -> List[str]:
         return data.get("countries", []) + data.get("other", [])
 
 def fetch_metainfo(market: str) -> List[dict]:
-    resp = requests.get(META_URL.format(market=market), headers=HEADERS, timeout=10)
+    resp = requests.post(
+        META_URL.format(market=market), json={}, headers=HEADERS, timeout=10
+    )
     resp.raise_for_status()
     return resp.json()
 
