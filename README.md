@@ -268,6 +268,15 @@ request. Here’s an example of the dictionary generated:
 The `get_scanner_data()` method sends this dictionary as a JSON payload to the TradingView API,
 allowing you to query data using SQL-like syntax without knowing the specifics of the API.
 
+## Windows One-Click OpenAPI Generation
+
+To generate the OpenAPI specifications on Windows:
+
+1. Double-click `generate_openapi.bat` in the project root.
+2. The script creates a virtual environment, installs the package and runs `scripts\gpt_openapi_generator.py`.
+
+The resulting specification files will be saved in the `openapi_generated/` directory.
+
 ## Feedback and Improvement
 
 If this package has bought value to your projects, please consider starring it.
