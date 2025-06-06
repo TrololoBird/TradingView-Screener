@@ -30,7 +30,7 @@ def get_markets() -> List[str]:
 
 
 def fetch_metainfo(market: str) -> dict:
-    resp = requests.post(METAINFO_URL.format(market=market), json={}, headers=HEADERS, timeout=10)
+    resp = requests.get(METAINFO_URL.format(market=market), headers=HEADERS, timeout=10)
     resp.raise_for_status()
     return resp.json()
 

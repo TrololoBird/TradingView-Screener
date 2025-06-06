@@ -20,8 +20,8 @@ def test_update_metainfo(monkeypatch, tmp_path):
 
     call_order = []
 
-    def fake_post(url, json=None, headers=None):
-        call_order.append(('post', url))
+    def fake_get(url, headers=None):
+        call_order.append(('get', url))
 
         class Resp:
             def __init__(self, text):
@@ -32,7 +32,7 @@ def test_update_metainfo(monkeypatch, tmp_path):
 
         return Resp(f'data for {url}')
 
-    monkeypatch.setattr(update_metainfo.requests, 'post', fake_post)
+    monkeypatch.setattr(update_metainfo.requests, 'get', fake_get)
 
     def fake_run(args, check=False):
         call_order.append(('run', args))
@@ -41,7 +41,7 @@ def test_update_metainfo(monkeypatch, tmp_path):
 
     update_metainfo.main()
 
-    get_calls = [c for c in call_order if c[0] == 'post']
+    get_calls = [c for c in call_order if c[0] == 'get']
     run_calls = [c[1] for c in call_order if c[0] == 'run']
 
     assert len(get_calls) == len(markets)
