@@ -274,6 +274,7 @@ To generate the OpenAPI specifications on Windows:
 
 1. Double-click `generate_openapi.bat` in the project root.
 2. The script creates a virtual environment, installs the package and runs `scripts\gpt_openapi_generator.py`.
+   Metainfo for each market is downloaded via GET requests before generating the specs.
 
 The resulting specification files will be saved in the `openapi_generated/` directory.
 

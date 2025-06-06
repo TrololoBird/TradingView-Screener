@@ -14,11 +14,13 @@ METAINFO_DIR = Path('data/metainfo')
 def fetch_metainfo(market: str) -> List[dict]:
     """Return metainfo JSON for a market."""
     try:
-        resp = requests.post(META_URL.format(market=market), json={}, headers=HEADERS, timeout=10)
+        resp = requests.get(
+            META_URL.format(market=market), headers=HEADERS, timeout=10
+        )
         resp.raise_for_status()
         return resp.json()
     except Exception:
-        path = METAINFO_DIR / f'{market}.json'
+        path = METAINFO_DIR / f"{market}.json"
         return json.loads(path.read_text())
 
 

@@ -17,7 +17,7 @@ def main() -> None:
     for market in markets:
         url = f'https://scanner.tradingview.com/{market}/metainfo'
         print(f'Downloading {url}')
-        resp = requests.post(url, json={}, headers=HEADERS)
+        resp = requests.get(url, headers=HEADERS)
         resp.raise_for_status()
         (METAINFO_DIR / f'{market}.json').write_text(resp.text)
 
