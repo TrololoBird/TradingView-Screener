@@ -1,20 +1,13 @@
 from __future__ import annotations
 
-from market_loader import get_markets
-from tv_api_parser import fetch_metainfo, group_fields
-from openapi_generator import generate_spec
+from metainfo_loader import download_all
+from openapi_generator import generate_from_metainfo
 
 
 def main() -> None:
-    markets = get_markets()
+    markets = download_all()
     for market in markets:
-        try:
-            meta = fetch_metainfo(market)
-        except Exception as exc:
-            print(f'Failed to get metainfo for {market}: {exc}')
-            continue
-        no_tf, with_tf, tfs = group_fields(meta)
-        path = generate_spec(market, no_tf, with_tf, tfs)
+        path = generate_from_metainfo(market)
         print(f'Generated {path}')
 
 

@@ -1,26 +1,19 @@
 import json
 import subprocess
 from pathlib import Path
+import sys
 
 import requests
 
-from tradingview_screener.query import HEADERS
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from metainfo_loader import download_all
 
 MARKETS_PATH = Path('data/markets.json')
 METAINFO_DIR = Path('data/metainfo')
 
 
 def main() -> None:
-    markets_data = json.loads(MARKETS_PATH.read_text())
-    markets = markets_data.get('countries', []) + markets_data.get('other', [])
-    METAINFO_DIR.mkdir(parents=True, exist_ok=True)
-    for market in markets:
-        url = f'https://scanner.tradingview.com/{market}/metainfo'
-        print(f'Downloading {url}')
-        resp = requests.get(url, headers=HEADERS)
-        resp.raise_for_status()
-        (METAINFO_DIR / f'{market}.json').write_text(resp.text)
-
+    download_all(markets_path=MARKETS_PATH, output_dir=METAINFO_DIR, session=requests)
     subprocess.run(['python', 'scripts/gpt_openapi_generator.py'], check=True)
 
 
