@@ -39,6 +39,7 @@ pdoc = "^15.0.0"
 pytest = "^7.4.3"
 pyright = "^1.1.364"
 requests-mock = "^1.11.0"
+openapi-spec-validator = {version = "^0.7.1", python = "<4.0"}
 
 #[tool.poetry.extras]
 #df = ["pandas"]
