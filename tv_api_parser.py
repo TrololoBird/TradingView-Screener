@@ -37,10 +37,28 @@ def sample_symbols(market: str) -> List[str]:
 
 
 def group_fields(meta: List[dict]) -> Tuple[List[str], List[str], List[str]]:
-    """Return columns without timeframe, bases with timeframe and timeframes."""
-    columns = [item.get('n') for item in meta if item.get('n')]
-    no_tf = sorted({c for c in columns if '|' not in c})
-    tf_cols = [c for c in columns if '|' in c]
-    bases = sorted({c.split('|')[0] for c in tf_cols})
-    tfs = sorted({c.split('|')[1] for c in tf_cols})
-    return no_tf, bases, tfs
+    """Return visible numeric columns and supported timeframes."""
+    no_tf: set[str] = set()
+    bases: set[str] = set()
+    tfs: set[str] = set()
+
+    for item in meta:
+        name = item.get('n')
+        if not name:
+            continue
+        if item.get('hh') or item.get('is_hidden'):
+            continue
+        typ = item.get('t')
+        if typ not in {'number', 'price', 'percent', 'fundamental_price', 'bool'}:
+            continue
+
+        if '|' in name:
+            base, tf = name.split('|', 1)
+            if item.get('interval_dependent') is False:
+                continue
+            bases.add(base)
+            tfs.add(tf)
+        else:
+            no_tf.add(name)
+
+    return sorted(no_tf), sorted(bases), sorted(tfs)
