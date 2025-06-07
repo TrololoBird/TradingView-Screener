@@ -62,7 +62,7 @@ def build_spec(
         props = {
             'symbols': qprops.get('symbols', {}),
             'columns': qprops.get('columns', {}),
-            'filters': qprops.get('filter', {}),
+            'filter': qprops.get('filter', {}),
             'sort': qprops.get('sort', {}),
             'range': qprops.get('range', {}),
         }
