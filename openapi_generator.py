@@ -164,6 +164,7 @@ def generate_from_metainfo(market: str) -> Path:
     path = METAINFO_DIR / f"{market}.json"
     meta = json.loads(path.read_text())
     fields = _load_fields(meta)
-    all_fields = [item.get('n') for item in fields if item.get('n')]
-    no_tf, with_tf, tfs = group_fields(fields)
+    visible = [f for f in fields if not f.get('hh') and not f.get('is_hidden')]
+    all_fields = [item.get('n') for item in visible if item.get('n')]
+    no_tf, with_tf, tfs = group_fields(visible)
     return generate_spec(market, no_tf, with_tf, tfs, all_fields)
