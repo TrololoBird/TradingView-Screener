@@ -272,6 +272,14 @@ python scripts/generate_openapi.py
 
 This writes the files `specs/openapi.yaml` and `specs/bundle.yaml`.
 
+To generate minimal OpenAPI files for specific markets run:
+
+```bash
+python scripts/generate_openapi_markets.py
+```
+
+This will create files like `specs/openapi_america.yaml`.
+
 ## Feedback and Improvement
 
 If this package has bought value to your projects, please consider starring it.
