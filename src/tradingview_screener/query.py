@@ -590,8 +590,8 @@ class Query:
         self.query.setdefault('range', DEFAULT_RANGE.copy())
 
         kwargs.setdefault('headers', HEADERS)
-        kwargs.setdefault('timeout', 20)
-        r = requests.post(self.url, json=self.query, **kwargs)
+        timeout = kwargs.pop('timeout', 20)
+        r = requests.post(self.url, json=self.query, timeout=timeout, **kwargs)
 
         if not r.ok:
             # add the body to the error message for debugging purposes

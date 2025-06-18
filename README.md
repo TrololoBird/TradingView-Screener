@@ -29,6 +29,8 @@ pip install tradingview-screener
 `tradingview-screener` is a Python package that allows you to create custom stock screeners using TradingView's official
 API. This package retrieves data directly from TradingView without the need for web scraping or HTML parsing.
 
+**Note:** This library requires an active internet connection to fetch data from TradingView. It will not function in offline environments.
+
 
 ### Key Features
 
@@ -258,6 +260,17 @@ request. Here’s an example of the dictionary generated:
 
 The `get_scanner_data()` method sends this dictionary as a JSON payload to the TradingView API,
 allowing you to query data using SQL-like syntax without knowing the specifics of the API.
+
+## OpenAPI Specification
+
+An example FastAPI server is included for generating an OpenAPI description of the
+`tradingview-screener` API. To regenerate the specification run:
+
+```bash
+python scripts/generate_openapi.py
+```
+
+This writes the files `specs/openapi.yaml` and `specs/bundle.yaml`.
 
 ## Feedback and Improvement
 
