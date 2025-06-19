@@ -5,7 +5,10 @@ info:
 paths:
   /scan:
     post:
-      summary: Scan
+      tags:
+      - Scanner
+      summary: Run a screener scan
+      description: Query TradingView screener and return matching rows.
       operationId: scan_scan_post
       requestBody:
         content:
@@ -18,7 +21,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ScanResponse'
         '422':
           description: Validation Error
           content:
@@ -43,22 +47,62 @@ components:
             type: string
           type: array
           title: Markets
+          description: Markets to scan, e.g. ``['america']`` or ``['crypto']``.
           default:
           - america
+          examples:
+          - - america
+          - - crypto
         columns:
           items:
             type: string
           type: array
           title: Columns
+          description: Columns to include in the response.
           default:
           - name
           - close
+          examples:
+          - - name
+            - close
+            - volume
         limit:
           type: integer
           title: Limit
+          description: Maximum number of rows to return.
           default: 50
+          examples:
+          - 10
       type: object
       title: ScanRequest
+      description: Request body for the ``/scan`` endpoint.
+    ScanResponse:
+      properties:
+        count:
+          type: integer
+          title: Count
+          description: Total number of records matching the query.
+          example: 17580
+        data:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Data
+          description: List of result rows.
+          examples:
+          - - close: 127.25
+              name: NVDA
+              ticker: NASDAQ:NVDA
+            - close: 558.7
+              name: SPY
+              ticker: AMEX:SPY
+      type: object
+      required:
+      - count
+      - data
+      title: ScanResponse
+      description: Response returned by the ``/scan`` endpoint.
     ValidationError:
       properties:
         loc:
