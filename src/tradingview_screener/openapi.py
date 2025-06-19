@@ -17,31 +17,36 @@ class ScanRequest(BaseModel):
     markets: list[str] = Field(
         default=["america"],
         description="Markets to scan, e.g. ``['america']`` or ``['crypto']``.",
-        examples=[["america"], ["crypto"]],
+        json_schema_extra={"examples": [["america"], ["crypto"]]},
     )
     columns: list[str] = Field(
         default=["name", "close"],
         description="Columns to include in the response.",
-        examples=[["name", "close", "volume"]],
+        json_schema_extra={"examples": [["name", "close", "volume"]]},
     )
     limit: int = Field(
         default=50,
         description="Maximum number of rows to return.",
-        examples=[10],
+        json_schema_extra={"examples": [10]},
     )
 
 class ScanResponse(BaseModel):
     """Response returned by the ``/scan`` endpoint."""
 
-    count: int = Field(description="Total number of records matching the query.", example=17580)
+    count: int = Field(
+        description="Total number of records matching the query.",
+        json_schema_extra={"example": 17580},
+    )
     data: list[dict] = Field(
         description="List of result rows.",
-        examples=[
-            [
-                {"ticker": "NASDAQ:NVDA", "name": "NVDA", "close": 127.25},
-                {"ticker": "AMEX:SPY", "name": "SPY", "close": 558.7},
+        json_schema_extra={
+            "examples": [
+                [
+                    {"ticker": "NASDAQ:NVDA", "name": "NVDA", "close": 127.25},
+                    {"ticker": "AMEX:SPY", "name": "SPY", "close": 558.7},
+                ]
             ]
-        ],
+        },
     )
 
 @app.post(
